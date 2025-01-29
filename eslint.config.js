@@ -17,6 +17,11 @@ export default [
         sourceType: 'module',
       },
     },
+    env: {
+       browser: true, 
+       es2020: true, 
+       node: true },
+
     settings: { react: { version: '18.3' } },
     plugins: {
       react,
