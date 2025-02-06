@@ -9,6 +9,7 @@ function App() {
   return (
     <div className="App">
       <h1 className="text-3xl font-bold underline color=red">Spotify Genre Explorer</h1>
+      <Auth setToken={setToken}/>
       {token ? (
         <Searcher token={token} />
       ) : (
