@@ -87,7 +87,6 @@ function Searcher({ token }) {
 
   return (
     <div>
-      <h1>Song in Mind</h1>
       <textarea
         value={text}
         onChange={handleTextChange}
