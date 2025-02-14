@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
-import genreData from "./genres_dict.json"; // Import the genre.json file
 
 function Searcher({ token }) {
   const [text, setText] = useState("");
@@ -21,65 +20,70 @@ function Searcher({ token }) {
     setLoading(true);
 
     try {
-      const genAI = new GoogleGenerativeAI(process.env.GEMINIKEY); 
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const genAI = new GoogleGenerativeAI(process.env.GEMINIKEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite-preview-02-05" });
 
-      const prompt = `Analyze the following text and suggest a list of music genres that best match the mood or emotion. Return only the genres as a comma-separated list:
-      Text: "${text}"
-      Suggested Genres:`;
+      const prompt = `Analyze the following text and suggest 1 song that best match the mood or emotion. Only show the song title and artist.
+      Given the text: "${text}"`;
+      console.log("debug:", prompt);
 
       const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const suggestedGenres = response.text().trim().toLowerCase();
+      const response = await result.response.text();
+      console.log(response);
 
-      const genresList = suggestedGenres.split(",").map((genre) => genre.trim());
-
-      const matchedGenres = [];
-      for (const genre of genresList) {
-        if (genreData.genres.map((g) => g.toLowerCase()).includes(genre)) {
-          matchedGenres.push(genre);
-        }
-        else if (genreData.subgenres.map((g) => g.toLowerCase()).includes(genre)) {
-          matchedGenres.push(genre);
-        }
-      }
-
-      if (matchedGenres.length === 0) {
-        setOutput("No matching genres found. Please try again.");
-        return;
-      }
-
-      // Fetch recommended tracks based on matched genres using Spotify Recommendations API
-      const seedGenres = matchedGenres.slice(0, 5).join(","); // Use up to 5 genres as seeds
-      console.log("Seed Genres:", seedGenres); // Debugging
-
-      const spotifyResponse = await axios.get(
-        `https://api.spotify.com/v1/recommendations?seed_genres=${seedGenres}&limit=50&market=US`,
+      
+      // YouTube Data API call
+      const youtubeResponse = await axios.get(
+        `https://www.googleapis.com/youtube/v3/search`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
+          params: {
+            q: response, // Hasil dari Gemini AI
+            part: "snippet",
+            type: "video",
+            maxResults: 1,
+            key: process.env.YOUTUBE_API_KEY,
+            regionCode: "US", // Bisa diubah sesuai target audiens
+            videoDuration: "any",
           },
         }
       );
+      console.log("YouTube API Response:", youtubeResponse.data);
 
-      const tracks = spotifyResponse.data.tracks;
-      if (tracks.length === 0) {
-        setOutput("No songs found for these genres. Please try again.");
-        return;
+      const videos = youtubeResponse.data.items;
+
+      if (videos.length > 0) {
+        const video = videos[0];
+        if (video.snippet) {
+          const title = video.snippet.title;
+          console.log("Video title:", title); // Debugging
+          setOutput(
+            <div>
+              <h3>{title}</h3>
+              <img src={video.snippet.thumbnails.default.url} alt={title} />
+              <p>{video.snippet.description}</p>
+              <a href={`http://www.youtube.com/watch?v=${video.id.videoId}`} target="_blank" rel="noopener noreferrer">
+                Watch on YouTube
+              </a>
+            </div>
+          );
+        } else {
+          console.error("Video snippet is undefined", video);
+          setOutput("No valid video found.");
+        }
+      } else {
+        setOutput("No videos found.");
       }
 
-      // Select a random song from the recommended tracks
-      const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-      setOutput(
-        `Recommended Song: ${randomTrack.name} by ${randomTrack.artists[0].name}`
-      );
     } catch (error) {
-      console.error("Error generating text:", error.response?.data || error.message);
+      console.error("YouTube API Error:", error.response?.data || error.message);
       setOutput("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+
+ 
 
   return (
     <div>
@@ -91,7 +95,7 @@ function Searcher({ token }) {
         className="input-field"
       ></textarea>
       <button onClick={generateText} disabled={loading}>
-        {loading ? "Loading..." : "Get Song"}
+        {loading ? "Loading..." : "Get Video"}
       </button>
       <h2>Output:</h2>
       <p>{output}</p>

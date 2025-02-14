@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     define: {
-      'process.env.SPOTIFYID': JSON.stringify(env.SPOTIFYID),
+      'process.env.YOUTUBE_API_KEY': JSON.stringify(env.YOUTUBE_API_KEY),
       'process.env.GEMINIKEY': JSON.stringify(env.GEMINIKEY),
     },
     plugins: [react()],
