@@ -8,7 +8,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1 className="text-3xl text-cyan-500">Song in Mind</h1>
+      <h1 className="text-3xl font-bold underline color=red">Spotify Genre Explorer</h1>
      <Searcher/>
     </div>
   );

@@ -23,7 +23,7 @@ function Searcher({ token }) {
       const genAI = new GoogleGenerativeAI(process.env.GEMINIKEY);
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite-preview-02-05" });
 
-      const prompt = `Analyze the following text and suggest 1 song that best match the mood or emotion. Only show the song title and artist.
+      const prompt = `Analyze the following text and suggest 1 song that best match the mood or emotion. Only response with song title and artist name without any analysis. Give song based on  given text's language. Make sure people know the song
       Given the text: "${text}"`;
       console.log("debug:", prompt);
 
@@ -37,12 +37,12 @@ function Searcher({ token }) {
         `https://www.googleapis.com/youtube/v3/search`,
         {
           params: {
-            q: response, // Hasil dari Gemini AI
+            q: response, 
             part: "snippet",
             type: "video",
             maxResults: 1,
             key: process.env.YOUTUBE_API_KEY,
-            regionCode: "US", // Bisa diubah sesuai target audiens
+            regionCode: "US", 
             videoDuration: "any",
           },
         }
@@ -55,7 +55,7 @@ function Searcher({ token }) {
         const video = videos[0];
         if (video.snippet) {
           const title = video.snippet.title;
-          console.log("Video title:", title); // Debugging
+          console.log("Video title:", title); 
           setOutput(
             <div>
               <h3>{title}</h3>
@@ -86,7 +86,12 @@ function Searcher({ token }) {
  
 
   return (
+<<<<<<< HEAD
+    <div className="align-middle">
+=======
     <div>
+      <h1>Song in Mind</h1>
+>>>>>>> parent of bbb13cf (update title in App component and remove redundant heading in Searcher component)
       <textarea
         value={text}
         onChange={handleTextChange}
